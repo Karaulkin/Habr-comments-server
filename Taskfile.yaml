@@ -1,0 +1,33 @@
+version: "3"
+
+tasks:
+  migration-down:
+    desc: "Run migration down"
+    cmds:
+      - go run ./cmd/migrator/main.go -host=localhost -port=5432 -login=kirill -password=pass123 -db=ozon -path=./migrations -mode=down
+
+  migration-up:
+    desc: "Run migration up"
+    cmds:
+      - go run ./cmd/migrator/main.go -host=localhost -port=5432 -login=kirill -password=pass123 -db=ozon -path=./migrations -mode=up
+
+
+  db-start:
+    desc: "Start postgres on docker"
+    cmds:
+      - sudo docker run --rm --name pgdocker -e POSTGRES_PASSWORD=pass123 -e POSTGRES_USER=kirill -e POSTGRES_DB=ozon -d -p 5432:5432 -v $HOME/docker/volumes/postgres:/var/lib/postgresql/data postgres
+
+  db-stop:
+    desc: "Stop postgres"
+    cmds:
+      - sudo docker stop pgdocker
+
+  test:
+    desc: "Start test"
+    cmds:
+      - go run ./cmd/migrator --storage-path=./storage/cache.db --migrations-path=./tests/migrations
+      - go test proxy_server/tests
+  start:
+    desc: "Start server"
+    cmds:
+      - go run cmd/server/main.go
