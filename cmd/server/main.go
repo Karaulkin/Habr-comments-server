@@ -2,6 +2,7 @@ package main
 
 import (
 	"Habr-comments-server/internal/config"
+	"Habr-comments-server/internal/storage/pg"
 	"fmt"
 	"log/slog"
 	"os"
@@ -21,7 +22,18 @@ func main() {
 	log := setupLogger(cfg.Env)
 
 	log.Info("starting server", slog.String("env", cfg.Env))
-	log.Debug("debug messages are enabled") // TODO: delete
+	// log.Debug("debug messages are enabled")
+
+	// подключение к бд работает
+	// Удалить в будущем был как тест
+	_, err := pg.New(cfg.Storage)
+
+	if err != nil {
+		log.Error("database", err)
+		return
+	}
+
+	log.Info("starting database")
 
 	// TODO: init storage: pgx
 

@@ -10,7 +10,7 @@ import (
 
 type Config struct {
 	Env        string `yaml:"env" env-default:"local"`
-	Storage    DB     `yaml:"db" env-required:"true"` // TODO:изменить для подключения к pg
+	Storage    DB     `yaml:"db" env-required:"true"`
 	HTTPServer `yaml:"http_server"`
 }
 

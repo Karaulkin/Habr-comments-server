@@ -3,8 +3,8 @@ env: "local"  # dev, prod
 db:
   host: "localhost"
   port: "5432"
-  login: "kirill"
-  pass: "pass123"
+  username: "kirill"
+  password: "pass123"
   database: "ozon"
 
 

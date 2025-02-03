@@ -5,11 +5,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Storage struct {
-	db *pgxpool.Pool
+	db *pgx.Conn
 }
 
 func New(dbCfg config.DB) (*Storage, error) {
@@ -18,7 +17,7 @@ func New(dbCfg config.DB) (*Storage, error) {
 	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s",
 		dbCfg.Username, dbCfg.Password, dbCfg.Host, dbCfg.Port, dbCfg.Database) // postgresql://user:password@host:port/database
 
-	pool, err := pgxpool.New(context.Background(), dsn)
+	pool, err := pgx.Connect(context.Background(), dsn)
 	if err != nil {
 		return nil, fmt.Errorf("%s: failed to create pool: %w", op, err)
 	}
@@ -26,11 +25,19 @@ func New(dbCfg config.DB) (*Storage, error) {
 	return &Storage{db: pool}, nil
 }
 
-func (s *Storage) Stop() error {
+func (s *Storage) Stop(ctx context.Context) error {
 	const op = "storage.pg.Stop"
-	if s.db != nil {
-		s.db.Close()
-		return nil
+
+	err := s.db.Close(ctx)
+
+	if err != nil {
+		return err
 	}
-	return fmt.Errorf("%s: err db closed", op)
+
+	return nil
 }
+
+//TODO: Return list of posts @SysteamPost
+// Return post by id and return comments @SysteamPost
+// Write block comments by id post @SysteamPost
+// Add comment on parent or id comment

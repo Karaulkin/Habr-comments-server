@@ -1,7 +1,6 @@
 CREATE TABLE users (
                        id SERIAL PRIMARY KEY,
-                       username TEXT UNIQUE NOT NULL,
-                       created_at TIMESTAMP DEFAULT NOW()
+                       username TEXT UNIQUE NOT NULL
 );
 
 CREATE TABLE posts (
@@ -21,3 +20,7 @@ CREATE TABLE comments (
                           content TEXT CHECK (LENGTH(content) <= 2000) NOT NULL,
                           created_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE INDEX idx_comments_post ON comments(post_id);
+
+CREATE INDEX idx_comments_parent ON comments(parent_id);
