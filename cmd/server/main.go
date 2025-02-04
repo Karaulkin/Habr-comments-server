@@ -37,7 +37,7 @@ func main() {
 
 	// TODO: init storage: pgx
 
-	// TODO: init router: chi, "chi render" пока не то
+	// TODO: init graphql
 
 	// TODO: run server
 }
