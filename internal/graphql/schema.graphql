@@ -1,0 +1,27 @@
+type Query {
+    posts: [Post!]!                    # Получение всех постов
+    post(id: ID!): Post                 # Получение конкретного поста с комментариями
+}
+
+type Mutation {
+    createPost(title: String!, content: String!, allowComments: Boolean): Post  # Добавление поста (allowComments по умолчанию true)
+    disableComments(postId: ID!): Post   # Отключение комментариев к посту
+    createComment(postId: ID!, parentId: ID, content: String!): Comment  # Добавление комментария
+}
+
+type Post {
+    id: ID!
+    title: String!
+    content: String!
+    allowComments: Boolean!
+    comments(first: Int = 10, after: ID): [Comment!]!  # Пагинация комментариев
+}
+
+type Comment {
+    id: ID!
+    content: String!
+    parent: Comment
+    children(first: Int = 10, after: ID): [Comment!]!  # Пагинация вложенных комментариев
+}
+
+#TODO: может надо сделать user чтобы добавить автора постов и комментариев

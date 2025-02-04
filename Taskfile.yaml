@@ -31,3 +31,10 @@ tasks:
     desc: "Start server"
     cmds:
       - go run cmd/server/main.go
+
+  gen:
+    desc: "Generate resolvers"
+    cmds:
+      - rm -rf generated.go models_gen.go resolver.go
+      - go get github.com/99designs/gqlgen@v0.17.64
+      - go run github.com/99designs/gqlgen generate --config internal/graphql/gqlgen.yml
