@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"log/slog"
 	"net/http"
 	"os"
@@ -71,6 +73,7 @@ func main() {
 		handler.ComplexityLimit(500), // Ограничение сложности запроса
 	)
 
+	srv = GraphQLLoggingMiddleware(log, srv)
 	srv = AuthMiddleware(srv)
 
 	mux := http.NewServeMux()
@@ -113,7 +116,7 @@ func main() {
 	log.Info("Shutting down server", slog.String("signal", sig.String()))
 
 	// Создаем контекст с таймаутом для завершения
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cfg.HTTPServer.Timeout*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
@@ -134,9 +137,39 @@ func main() {
 
 func AuthMiddleware(next http.Handler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), "userID", uint(1)) // Заглушка для авторизации
+		ctx := context.WithValue(r.Context(), "userID", uint(1)) // Заглушка
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
+	})
+}
+
+func GraphQLLoggingMiddleware(log *slog.Logger, next http.Handler) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Error("Failed to read request body", slog.Any("error", err))
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		r.Body = io.NopCloser(bytes.NewBuffer(body))
+
+		log.Info("GraphQL Request",
+			slog.String("method", r.Method),
+			slog.String("path", r.URL.Path),
+			slog.String("body", string(body)),
+			slog.String("remote_addr", r.RemoteAddr),
+		)
+
+		next.ServeHTTP(w, r)
+
+		duration := time.Since(start)
+		log.Info("GraphQL Request Processed",
+			slog.String("duration", duration.String()),
+			slog.String("remote_addr", r.RemoteAddr),
+		)
 	})
 }
 
