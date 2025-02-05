@@ -20,3 +20,7 @@ CREATE TABLE comments (
                           content TEXT CHECK (char_length(content) <= 2000) NOT NULL,
                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX idx_comments_post ON comments(post_id);
+
+CREATE INDEX idx_comments_parent ON comments(parent_id);
