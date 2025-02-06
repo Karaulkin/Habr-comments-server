@@ -53,7 +53,7 @@ func NewLoaders(svc *service.Service) *Loaders {
 		ChildCommentLoader: &ChildCommentLoader{
 			wait:     5 * time.Millisecond,
 			maxBatch: 50,
-			fetch: func(keys []int) ([][]*models.Comment, []error) { // Должно быть [][]*models.Comment
+			fetch: func(keys []int) ([][]*models.Comment, []error) {
 				comments, err := svc.CommentService.GetChildCommentsByParentID(context.Background(), keys)
 				if err != nil {
 					errors := make([]error, len(keys))
@@ -63,7 +63,7 @@ func NewLoaders(svc *service.Service) *Loaders {
 					return nil, errors
 				}
 
-				return comments, nil // Убираем flatten, возвращаем [][]*models.Comment
+				return comments, nil
 			},
 		},
 	}

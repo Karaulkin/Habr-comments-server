@@ -22,11 +22,6 @@ tasks:
     cmds:
       - sudo docker stop pgdocker
 
-  test:
-    desc: "Start test"
-    cmds:
-      - go run ./cmd/migrator --storage-path=./storage/cache.db --migrations-path=./tests/migrations
-      - go test proxy_server/tests
   start:
     desc: "Start server"
     cmds:

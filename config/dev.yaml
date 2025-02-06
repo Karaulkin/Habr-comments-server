@@ -1,0 +1,12 @@
+env: "dev"  # dev, prod
+
+db:
+  host: "db"
+  port: "5432"
+  username: "kirill"
+  password: "pass123"
+  database: "ozon"
+
+http_server:
+  address: "0.0.0.0:8082"
+  timeout: 4s
