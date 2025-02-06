@@ -1,9 +1,22 @@
 schema:
   - internal/graphql/schema.graphql
+
 exec:
   filename: internal/graphql/generated.go
+
 model:
   filename: internal/graphql/models_gen.go
+
 resolver:
   filename: internal/graphql/resolver.go
   type: Resolver
+
+models:
+  User:
+    model: Habr-comments-server/internal/models.User
+  Post:
+    model: Habr-comments-server/internal/models.Post
+  Comment:
+    model: Habr-comments-server/internal/models.Comment
+
+autobind: []

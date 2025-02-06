@@ -1,27 +1,36 @@
-type Query {
-    posts: [Post!]!                    # Получение всех постов
-    post(id: ID!): Post                 # Получение конкретного поста с комментариями
-}
-
-type Mutation {
-    createPost(title: String!, content: String!, allowComments: Boolean): Post  # Добавление поста (allowComments по умолчанию true)
-    disableComments(postId: ID!): Post   # Отключение комментариев к посту
-    createComment(postId: ID!, parentId: ID, content: String!): Comment  # Добавление комментария
+type User {
+    id: ID!
+    username: String!
 }
 
 type Post {
     id: ID!
+    author: User!
     title: String!
     content: String!
     allowComments: Boolean!
-    comments(first: Int = 10, after: ID): [Comment!]!  # Пагинация комментариев
+    createdAt: String!
+    comments(limit: Int, offset: Int): [Comment!]! # Корневые комментарии с пагинацией
 }
 
 type Comment {
     id: ID!
-    content: String!
+    post: Post!
+    author: User!
     parent: Comment
-    children(first: Int = 10, after: ID): [Comment!]!  # Пагинация вложенных комментариев
+    content: String!
+    createdAt: String!
+    children(limit: Int, offset: Int): [Comment!]! # Дочерние комментарии с пагинацией
 }
 
-#TODO: может надо сделать user чтобы добавить автора постов и комментариев
+type Query {
+    posts(limit: Int, offset: Int): [Post!]! # Получение постов с пагинацией
+    post(id: ID!): Post # Получение поста по id с комментариями
+    comments(parentId: ID!, limit: Int, offset: Int): [Comment!]! # Получение вложенных комментариев
+}
+
+type Mutation {
+    createPost(authorId: ID!, title: String!, content: String!, allowComments: Boolean!): Post! # Добавление поста
+    createComment(postId: ID!, authorId: ID!, parentId: ID, content: String!): Comment! # Добавление комментария
+    blockComments(postId: ID!): Post! # Блокировка комментариев для поста
+}

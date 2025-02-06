@@ -28,7 +28,9 @@ type DB struct {
 }
 
 func MustLoad() *Config {
-	loadEnv()
+	if err := loadEnv(); err != nil {
+		log.Printf("error loading environment variables: %v", err)
+	}
 
 	configPath := os.Getenv("CONFIG_PATH") //загрузка из переменной окружения
 	if configPath == "" {
@@ -48,8 +50,20 @@ func MustLoad() *Config {
 	return &cfg
 }
 
-func loadEnv() {
-	if err := godotenv.Load("local.env"); err != nil {
-		log.Fatalf("Error loading local.env file: %s", err.Error())
+func loadEnv() error {
+	var err error
+
+	if err = godotenv.Load("local.env"); err == nil {
+		return nil
 	}
+
+	if err = godotenv.Load("dev.env"); err == nil {
+		return nil
+	}
+
+	if err = godotenv.Load("prod.env"); err == nil {
+		return nil
+	}
+
+	return err
 }

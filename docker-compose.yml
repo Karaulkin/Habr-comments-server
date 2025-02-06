@@ -1,0 +1,34 @@
+version: '3.9'
+
+services:
+  go-app:
+    container_name: go-app
+    build: .
+    environment:
+      ENV: "dev"
+      CONFIG_PATH: "./config/dev.yaml"
+    ports:
+      - "8082:8082"
+    depends_on:
+      db:
+        condition: service_healthy  # Запускаем только после того, как БД полностью готова
+
+  db:
+    container_name: db
+    image: postgres:12
+    environment:
+      POSTGRES_PASSWORD: pass123
+      POSTGRES_USER: kirill
+      POSTGRES_DB: ozon
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:  # Добавляем проверку готовности БД
+      test: ["CMD-SHELL", "pg_isready -U kirill -d ozon"]
+      interval: 2s
+      retries: 5
+      start_period: 3s
+
+volumes:
+  pgdata: {}
