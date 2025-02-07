@@ -1,8 +1,10 @@
 package main
 
 import (
+	in_memory "Habr-comments-server/internal/storage/in-memory"
 	"bytes"
 	"context"
+	"flag"
 	"io"
 	"log/slog"
 	"net/http"
@@ -27,7 +29,16 @@ const (
 	envProd  = "prod"
 )
 
+var (
+	useInMemory bool
+)
+
+func init() {
+	flag.BoolVar(&useInMemory, "in-memory", false, "use in-memory storage")
+}
+
 func main() {
+	flag.Parse()
 	// Загружаем конфигурацию
 	cfg := config.MustLoad()
 
@@ -35,27 +46,43 @@ func main() {
 	log := setupLogger(cfg.Env)
 	log.Info("Starting server", slog.String("env", cfg.Env))
 
-	// Подключаемся к БД
-	db, err := pg.New(cfg.Storage)
-	if err != nil {
-		log.Error("Database connection failed", slog.Any("error", err))
-		os.Exit(1)
-	}
-	if db == nil {
-		log.Error("Database connection is nil! Check config.")
-		os.Exit(1)
-	}
+	var svc *service.Service
 
-	defer func() {
-		if err := db.Stop(context.Background()); err != nil {
-			log.Error("Failed to close database connection", slog.Any("error", err))
+	switch useInMemory {
+	case true:
+		db := in_memory.NewInMemoryStorage()
+
+		log.Info("Using in-memory storage")
+
+		// Создаем сервисы
+		svc = service.NewService(db, db)
+
+	default:
+		// Подключаемся к БД
+		db, err := pg.New(cfg.Storage)
+
+		if err != nil {
+			log.Error("Database connection failed", slog.Any("error", err))
+			os.Exit(1)
 		}
-	}()
+		if db == nil {
+			log.Error("Database connection is nil! Check config.")
+			os.Exit(1)
+		}
 
-	log.Info("Connected to database")
+		defer func() {
+			if err = db.Stop(context.Background()); err != nil {
+				log.Error("Failed to close database connection", slog.Any("error", err))
+			} else {
+				log.Info("Database connection closed")
+			}
+		}()
 
-	// Создаем сервисы
-	svc := service.NewService(db, db)
+		log.Info("Connected to database")
+
+		// Создаем сервисы
+		svc = service.NewService(db, db)
+	}
 
 	// Создаем DataLoader'ы
 	lds := loaders.NewLoaders(svc)
@@ -122,13 +149,6 @@ func main() {
 		log.Error("Failed to gracefully shutdown server", slog.Any("error", err))
 	} else {
 		log.Info("Server shutdown successfully")
-	}
-
-	// Закрываем соединение с БД
-	if err := db.Stop(ctx); err != nil {
-		log.Error("Failed to close database connection", slog.Any("error", err))
-	} else {
-		log.Info("Database connection closed")
 	}
 
 	log.Info("Server exited")

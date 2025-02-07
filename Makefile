@@ -1,4 +1,4 @@
-.PHONY: migration-down migration-up db-start db-stop
+.PHONY: migration-down migration-up db-start db-stop test
 
 MIGRATOR=go run ./cmd/migrator/main.go -host=localhost -port=5432 -login=kirill -password=pass123 -db=ozon -path=./migrations
 
@@ -15,4 +15,12 @@ db-stop:
 	docker stop pgdocker
 
 start:
-	go run cmd/server/main.go
+	go build -o server ./cmd/server/main.go
+	./server
+
+clean:
+	rm server
+
+test:
+	go test -v ./test/tservice
+
